@@ -3,32 +3,31 @@ import threading
 
 
 async def async_task():
-    print("Async task started in MainThread")
-    await asyncio.sleep(1)
-    print("Async task finished in MainThread")
-    return "Async Done"
+    print(f"Async task started in {threading.current_thread().name}")
+    await asyncio.sleep(2)
+    print(f"Async task finished in {threading.current_thread().name}")
+    return "Async Done in SubThread"
 
 
-def sync_task_with_async_trigger(loop, event, result_container):
-    print(f"Sync task running in {threading.current_thread().name}")
-    future = asyncio.run_coroutine_threadsafe(async_task(), loop)
-    try:
-        result = future.result()
-        result_container.append(result)
-    finally:
-        loop.call_soon_threadsafe(event.set)  # ✅ 通知主线程事件已完成
+def run_async_in_thread(result_holder):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(async_task())
+    result_holder.append(result)
+    loop.close()
 
 
 async def main():
-    loop = asyncio.get_running_loop()
-    event = asyncio.Event()
-    result_container = []
-
-    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop, event, result_container))
+    result_holder = []
+    thread = threading.Thread(target=run_async_in_thread, args=(result_holder,))
     thread.start()
 
-    await event.wait()  # ✅ 主线程异步等待子线程通知
+    # ✅ 主线程继续执行其他异步任务
+    print("Main thread doing other things...")
+    while thread.is_alive():
+        await asyncio.sleep(0.5)
+
     thread.join()
-    print(f"Sync task got async result: {result_container[0]}")
+    print(f"Got result from sub-thread: {result_holder[0]}")
 
 asyncio.run(main())
