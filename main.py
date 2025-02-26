@@ -3,24 +3,22 @@ import threading
 import time
 
 
-async def async_task():
-    print("Async task started in MainThread")
-    await asyncio.sleep(1)
-    print("Async task finished in MainThread")
-    return "Async Done"
+async def notify_async(msg):
+    print(f"Notification: {msg} in {threading.current_thread().name}")
 
 
-def sync_task_with_async_trigger(loop):
-    print(f"Sync task running in {threading.current_thread().name}")
-    time.sleep(2)  # 模拟耗时任务
-    future = asyncio.run_coroutine_threadsafe(async_task(), loop)
-    print(f"Sync task got async result: {future.result()}")
+def blocking_io_task(loop):
+    print("Starting blocking I/O in Thread")
+    time.sleep(3)  # 模拟阻塞 I/O
+    print("Blocking I/O done")
+    # 调用异步通知
+    asyncio.run_coroutine_threadsafe(notify_async("I/O Completed"), loop)
 
 
 async def main():
     loop = asyncio.get_running_loop()
-    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop,))
-    thread.start()
-    thread.join()
+    t = threading.Thread(target=blocking_io_task, args=(loop,))
+    t.start()
+    t.join()
 
 asyncio.run(main())
