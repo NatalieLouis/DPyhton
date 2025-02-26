@@ -2,25 +2,35 @@ import asyncio
 import threading
 
 
-async def coro(name, delay):
-    print(f"{name} running in: {threading.current_thread().name}")
-    await asyncio.sleep(delay)
-    print(f"{name} finished")
+async def my_coroutine():
+    print(f"Coroutine running in: {threading.current_thread().name}")
+    await asyncio.sleep(1)
+    print("Coroutine finished")
+    return "Done"
 
 
-def thread_worker():
-    loop = asyncio.new_event_loop()
+def run_in_thread(loop, event):
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(coro("Thread Coroutine", 2))
-    loop.close()
+    loop.run_forever()
+    event.set()  # 通知主线程协程已完成
 
 
 async def main():
-    thread = threading.Thread(target=thread_worker)
+    loop = asyncio.new_event_loop()
+    event = threading.Event()
+    thread = threading.Thread(target=run_in_thread, args=(loop, event))
     thread.start()
 
-    # 主线程的事件循环同时运行另一个协程
-    await coro("Main Coroutine", 1)
-    thread.join()
+    # 确保事件循环已经启动
+    while not loop.is_running():
+        await asyncio.sleep(0.1)
+
+    future = asyncio.run_coroutine_threadsafe(my_coroutine(), loop)
+    result = future.result()  # 等待协程完成并获取结果
+    print(f"Result: {result}")
+
+    loop.call_soon_threadsafe(loop.stop)
+    thread.join()  # 确保子线程已经完成
+    loop.close()
 
 asyncio.run(main())
