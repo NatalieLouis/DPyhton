@@ -1,24 +1,26 @@
 import asyncio
 import threading
+import time
 
 
-async def worker(name, delay):
-    print(f"{name} running in {threading.current_thread().name}")
-    await asyncio.sleep(delay)
-    print(f"{name} finished")
+async def async_task():
+    print("Async task started in MainThread")
+    await asyncio.sleep(1)
+    print("Async task finished in MainThread")
+    return "Async Done"
 
 
-def thread_event_loop():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    # 在子线程事件循环中并发运行多个任务
-    loop.run_until_complete(asyncio.gather(
-        worker("SubTask-1", 1),
-        worker("SubTask-2", 2),
-    ))
-    loop.close()
+def sync_task_with_async_trigger(loop):
+    print(f"Sync task running in {threading.current_thread().name}")
+    time.sleep(2)  # 模拟耗时任务
+    future = asyncio.run_coroutine_threadsafe(async_task(), loop)
+    print(f"Sync task got async result: {future.result()}")
 
 
-thread = threading.Thread(target=thread_event_loop)
-thread.start()
-thread.join()
+async def main():
+    loop = asyncio.get_running_loop()
+    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop,))
+    thread.start()
+    thread.join()
+
+asyncio.run(main())
