@@ -1,20 +1,19 @@
 import asyncio
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 
-def sync_task(msg):
-    print(f"[{threading.current_thread().name}] {msg}")
-
-
-def run_in_thread(loop):
-    print(f"[{threading.current_thread().name}] Thread started")
-    loop.call_soon_threadsafe(sync_task, "Hello from thread!")
+def blocking_io():
+    import time
+    time.sleep(2)
+    return "Blocking IO result"
 
 
 async def main():
     loop = asyncio.get_running_loop()
-    thread = threading.Thread(target=run_in_thread, args=(loop,))
-    thread.start()
-    thread.join()
+    with ThreadPoolExecutor() as executor:
+        future = executor.submit(blocking_io)
+        wrapped_future = asyncio.wrap_future(future)
+        result = await wrapped_future
+        print(f"Got result: {result}")
 
 asyncio.run(main())
