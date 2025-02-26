@@ -29,6 +29,7 @@ async def main():
 
     # ✅ 在异步任务中等待线程完成
     await asyncio.to_thread(event.wait)  # 异步等待线程事件
+    # event.wait() # ❌ 不能直接调用，会阻塞事件循环
     thread.join()  # ✅ 确保线程正确退出
 
 
