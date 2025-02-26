@@ -3,29 +3,24 @@ import threading
 import time
 
 
-async def main_task():
-    print("Main task started")
-    await asyncio.sleep(5)
-    print("Main task finished")
+async def async_task():
+    print("Async task started in MainThread")
+    await asyncio.sleep(1)
+    print("Async task finished in MainThread")
+    return "Async Done"
 
 
-def stop_loop_soon(loop):
-    print("SubThread will stop the loop after 2s.")
-    time.sleep(2)
-    loop.call_soon_threadsafe(loop.stop)  # ⚡ 安全地从子线程停止事件循环
+def sync_task_with_async_trigger(loop):
+    print(f"Sync task running in {threading.current_thread().name}")
+    time.sleep(2)  # 模拟耗时任务
+    future = asyncio.run_coroutine_threadsafe(async_task(), loop)
+    print(f"Sync task got async result: {future.result()}")
 
 
-def main():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    t = threading.Thread(target=stop_loop_soon, args=(loop,))
-    t.start()
-    try:
-        loop.run_forever()  # 🏃 子线程2s后会停止该循环
-    finally:
-        print("Loop stopped by subthread.")
-        loop.close()
-        t.join()
+async def main():
+    loop = asyncio.get_running_loop()
+    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop,))
+    thread.start()
+    thread.join()
 
-
-main()
+asyncio.run(main())
