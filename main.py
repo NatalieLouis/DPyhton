@@ -27,6 +27,6 @@ async def main():
     thread = threading.Thread(target=run_coroutine_in_thread, args=(loop, event))
     thread.start()
     await event.wait()  # 等待子线程完成
-    thread.join()  # 确保子线程已经完成
+    # 移除 thread.join()，因为 event.wait() 已经确保子线程完成
 
 asyncio.run(main())
