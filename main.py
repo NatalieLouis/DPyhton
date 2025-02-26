@@ -1,33 +1,24 @@
-import threading
+import logging
 
-# 共享变量
-counter = 0
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,  # 设置日志级别为 INFO
+    format="%(asctime)s %(levelname)s: %(message)s",  # 日志格式
+    datefmt="%H:%M:%S,%f",  # 时间戳的格式
+)
 
+# 创建一个文件处理器，将日志输出到文件
+file_handler = logging.FileHandler("/tmp/park.log", mode='w')
+file_handler.setLevel(logging.INFO)  # 设置文件处理器的日志级别
+file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s", datefmt="%H:%M:%S,%f"))
 
-def increment():
-    global counter
-    for _ in range(1000000):
-        counter += 1
+# 获取根日志记录器
+logger = logging.getLogger()
 
+# 将文件处理器添加到根日志记录器
+logger.addHandler(file_handler)
 
-def decrement():
-    global counter
-    for _ in range(1000000):
-        counter -= 1
-
-
-# 创建线程
-threads = []
-for _ in range(5):
-    t1 = threading.Thread(target=increment)
-    t2 = threading.Thread(target=decrement)
-    t1.start()
-    t2.start()
-    threads.append(t1)
-    threads.append(t2)
-
-# 等待所有线程完成
-for t in threads:
-    t.join()
-
-print(f"Final counter value: {counter}")
+# 测试日志
+logger.info("This is an info message3")
+logger.warning("This is a warning message3")
+logger.error("This is an error message")
