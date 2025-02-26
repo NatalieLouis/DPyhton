@@ -15,8 +15,8 @@ async def main():
     await future  # 等待执行器中的任务完成
 
 # 手动创建和关闭事件循环
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
+loop = asyncio.get_running_loop()
+
 try:
     loop.run_until_complete(main())
 finally:
