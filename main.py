@@ -1,14 +1,22 @@
-import asyncio
 import threading
+import asyncio
 
 
-async def task(name):
-    print(f"{name} running in thread: {threading.current_thread().name}")
+async def my_coroutine():
+    print("Coroutine started")
     await asyncio.sleep(1)
-    print(f"{name} finished")
+    print("Coroutine finished")
+    return "Done"
 
 
-async def main():
-    await asyncio.gather(task("Task 1"), task("Task 2"))
+def thread_event_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(my_coroutine())
+    print(f"Result in thread loop: {result}")
+    loop.close()
 
-asyncio.run(main())
+
+thread = threading.Thread(target=thread_event_loop)
+thread.start()
+thread.join()
