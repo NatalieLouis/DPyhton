@@ -1,4 +1,5 @@
 import asyncio
+import threading
 
 
 async def my_coroutine():
@@ -7,6 +8,18 @@ async def my_coroutine():
     print("Coroutine finished")
     return "Done"
 
-loop = asyncio.get_event_loop()
-result = loop.run_until_complete(my_coroutine())
-print(f"Result: {result}")
+
+def run_coroutine_in_thread(loop):
+    coroutine = my_coroutine()
+    future = asyncio.run_coroutine_threadsafe(coroutine, loop)
+    result = future.result()  # 等待协程完成并获取结果
+    print(f"Result: {result}")
+
+
+async def main():
+    loop = asyncio.get_running_loop()
+    thread = threading.Thread(target=run_coroutine_in_thread, args=(loop,))
+    thread.start()
+    thread.join()
+
+asyncio.run(main())
