@@ -1,6 +1,5 @@
 import asyncio
 import threading
-import time
 
 
 async def async_task():
@@ -10,26 +9,26 @@ async def async_task():
     return "Async Done"
 
 
-def sync_task_with_async_trigger(loop, queue):
+def sync_task_with_async_trigger(loop, event, result_container):
     print(f"Sync task running in {threading.current_thread().name}")
     future = asyncio.run_coroutine_threadsafe(async_task(), loop)
     try:
-        result = future.result()  # ✅ 子线程等待异步任务完成
-        queue.put(result)
-    except Exception as e:
-        print(f"Exception in thread: {e}")
+        result = future.result()
+        result_container.append(result)
+    finally:
+        loop.call_soon_threadsafe(event.set)  # ✅ 通知主线程事件已完成
 
 
 async def main():
     loop = asyncio.get_running_loop()
-    from queue import Queue
-    result_queue = Queue()
-    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop, result_queue))
+    event = asyncio.Event()
+    result_container = []
+
+    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop, event, result_container))
     thread.start()
 
-    time.sleep(10)
-
-    print(f"Sync task got async result: {result_queue.get()}")
+    await event.wait()  # ✅ 主线程异步等待子线程通知
     thread.join()
+    print(f"Sync task got async result: {result_container[0]}")
 
 asyncio.run(main())
