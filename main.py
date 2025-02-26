@@ -10,29 +10,27 @@ async def async_task():
     return "Async Done"
 
 
-def sync_task_with_async_trigger(loop, queue):
+def sync_task_with_async_trigger(loop, event, result_container):
     print(f"Sync task running in {threading.current_thread().name}")
     time.sleep(2)
     future = asyncio.run_coroutine_threadsafe(async_task(), loop)
     try:
-        result = future.result()  # ✅ 子线程阻塞等待，但无主线程阻塞
-        queue.put(result)         # ✅ 使用线程安全队列返回结果
-    except Exception as e:
-        print(f"Exception in thread: {e}")
+        result = future.result()  # ✅ 子线程安全获取结果
+        result_container.append(result)
+    finally:
+        loop.call_soon_threadsafe(event.set)  # ✅ 通知主线程
 
 
 async def main():
     loop = asyncio.get_running_loop()
-    from queue import Queue
-    result_queue = Queue()
-    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop, result_queue))
+    event = asyncio.Event()
+    result_container = []
+
+    thread = threading.Thread(target=sync_task_with_async_trigger, args=(loop, event, result_container))
     thread.start()
 
-    # ✅ 主线程异步等待子线程完成而非阻塞
-    while thread.is_alive():
-        await asyncio.sleep(0.1)
-
-    print(f"Sync task got async result: {result_queue.get()}")
+    await event.wait()  # ✅ 等待子线程完成任务而非阻塞
     thread.join()
+    print(f"Sync task got async result: {result_container[0]}")
 
 asyncio.run(main())
