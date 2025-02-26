@@ -10,6 +10,7 @@ async def my_coroutine():
 
 
 def run_coroutine_in_thread(loop, event):
+    asyncio.set_event_loop(loop)
     coroutine = my_coroutine()
     future = asyncio.run_coroutine_threadsafe(coroutine, loop)
     result = future.result()  # 等待协程完成并获取结果
@@ -18,11 +19,12 @@ def run_coroutine_in_thread(loop, event):
 
 
 async def main():
-    loop = asyncio.get_running_loop()
-    event = asyncio.Event()
+    loop = asyncio.new_event_loop()
+    event = threading.Event()
     thread = threading.Thread(target=run_coroutine_in_thread, args=(loop, event))
     thread.start()
-    await event.wait()  # 等待子线程完成
+    event.wait()  # 等待子线程完成
     thread.join()
+    loop.close()
 
 asyncio.run(main())
