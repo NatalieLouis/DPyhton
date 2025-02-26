@@ -1,5 +1,6 @@
 import asyncio
 import threading
+from queue import Queue
 
 
 async def async_task():
@@ -9,25 +10,24 @@ async def async_task():
     return "Async Done in SubThread"
 
 
-def run_async_in_thread(result_holder):
+def run_async_in_thread(result_queue):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     result = loop.run_until_complete(async_task())
-    result_holder.append(result)
+    result_queue.put(result)  # ✅ 使用线程安全的队列
     loop.close()
 
 
 async def main():
-    result_holder = []
-    thread = threading.Thread(target=run_async_in_thread, args=(result_holder,))
+    result_queue = Queue()
+    thread = threading.Thread(target=run_async_in_thread, args=(result_queue,))
     thread.start()
 
-    # ✅ 主线程继续执行其他异步任务
     print("Main thread doing other things...")
     while thread.is_alive():
         await asyncio.sleep(0.5)
 
     thread.join()
-    print(f"Got result from sub-thread: {result_holder[0]}")
+    print(f"Got result from sub-thread: {result_queue.get()}")
 
 asyncio.run(main())
