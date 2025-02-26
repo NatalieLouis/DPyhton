@@ -23,10 +23,13 @@ def run_coroutine_in_thread(loop, event):
 
 async def main():
     loop = asyncio.get_running_loop()
-    event = asyncio.Event()
+    event = threading.Event()  # ✅ 改为线程安全的 threading.Event
     thread = threading.Thread(target=run_coroutine_in_thread, args=(loop, event))
     thread.start()
-    await event.wait()  # 等待子线程完成
-    # 移除 thread.join()，因为 event.wait() 已经确保子线程完成
+
+    # ✅ 在异步任务中等待线程完成
+    await asyncio.to_thread(event.wait)  # 异步等待线程事件
+    thread.join()  # ✅ 确保线程正确退出
+
 
 asyncio.run(main())
