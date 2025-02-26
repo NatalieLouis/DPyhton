@@ -1,30 +1,24 @@
 import asyncio
 import threading
+import time
 
 
-async def my_coro():
-    print(f"Running in thread: {threading.current_thread().name}")
+async def my_task(loop):
+    print("Task started")
     await asyncio.sleep(1)
-    print("Finished coroutine")
+    print("Task finished")
+    loop.stop()  # 🛑 显式停止事件循环
 
 
-def thread_worker(loop):
-    asyncio.set_event_loop(loop)  # 在子线程中绑定事件循环
-    print(f"Loop set in thread: {threading.current_thread().name}")
-    loop.run_until_complete(my_coro())
+def thread_func():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    asyncio.ensure_future(my_task(loop))  # ⚡ 提交任务
+    loop.run_forever()  # 💡 如果不调用 loop.stop()，线程将一直阻塞在这里
+    print("Event loop in thread stopped.")
 
 
-# 主线程中创建事件循环
-loop = asyncio.new_event_loop()
-print(f"Loop created in thread: {threading.current_thread().name}")
-
-# 启动子线程并传递事件循环
-thread = threading.Thread(target=thread_worker, args=(loop,))
-thread.start()
-thread.join()
-
-# 检查主线程中的默认事件循环
-try:
-    asyncio.get_event_loop()
-except RuntimeError as e:
-    print(f"MainThread get_event_loop error: {e}")
+t = threading.Thread(target=thread_func)
+t.start()
+t.join()
+print("Thread exited.")
