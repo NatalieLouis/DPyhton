@@ -1,25 +1,17 @@
 import asyncio
-import threading
+import time
 
 
-async def my_coroutine():
-    print("Coroutine started")
-    await asyncio.sleep(1)
-    print("Coroutine finished")
+def blocking_function(proto):
+    print(f"Blocking function started with {proto}")
+    time.sleep(2)  # 模拟阻塞操作
+    print(f"Blocking function finished with {proto}")
     return "Done"
 
 
-def run_coroutine_in_thread(loop):
-    coroutine = my_coroutine()
-    future = asyncio.run_coroutine_threadsafe(coroutine, loop)
-    result = future.result()  # 等待协程完成并获取结果
-    print(f"Result: {result}")
-
-
 async def main():
-    loop = asyncio.get_running_loop()
-    thread = threading.Thread(target=run_coroutine_in_thread, args=(loop,))
-    thread.start()
-    thread.join()
+    proto = "example_proto"
+    result = await asyncio.to_thread(blocking_function, proto)
+    print(f"Result: {result}")
 
 asyncio.run(main())
