@@ -1,19 +1,19 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
 
-def blocking_io():
-    import time
-    time.sleep(2)
-    return "Blocking IO result"
+async def task(name, delay):
+    await asyncio.sleep(delay)
+    print(f"{name} finished after {delay}s")
+    return f"{name} result"
 
 
 async def main():
-    loop = asyncio.get_running_loop()
-    with ThreadPoolExecutor() as executor:
-        future = executor.submit(blocking_io)
-        wrapped_future = asyncio.wrap_future(future)
-        result = await wrapped_future
-        print(f"Got result: {result}")
+    results = await asyncio.gather(
+        task("Task1", 1),
+        task("Task2", 2),
+        task("Task3", 3),
+        return_exceptions=True
+    )
+    print(f"Results: {results}")
 
 asyncio.run(main())
