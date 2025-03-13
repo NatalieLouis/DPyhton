@@ -1,12 +1,20 @@
-import asyncio
+from dataclasses import dataclass
 
 
-async def async_task():
-    print("Task started")
-    await asyncio.sleep(1)
-    print("Task finished")
+@dataclass(frozen=True, eq=False)
+class Person:
+    name: str
+    age: int
 
-# 在事件循环未启动时调用 create_task 会抛出错误
-task = asyncio.create_task(async_task())  # 会报错
+    def __hash__(self):
+        return 1
 
-asyncio.run(task)
+
+p1 = Person("John", 30)
+p2 = Person("John", 30)
+
+print("hash", hash(p1))
+print("hash", hash(p2))
+print("eq", p1 == p2)
+d = {p1: "p1", p2: "p2"}
+print(d)
