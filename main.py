@@ -1,13 +1,10 @@
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True, eq=False)
+@dataclass()
 class Person:
     name: str
     age: int
-
-    def __hash__(self):
-        return 1
 
 
 p1 = Person("John", 30)
