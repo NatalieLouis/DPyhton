@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 
 
-@dataclass()
+@dataclass(frozen=True, unsafe_hash=True)
 class Person:
     name: str
     age: int
+
+    def __hash__(self):
+        super().__hash__()
 
 
 p1 = Person("John", 30)
