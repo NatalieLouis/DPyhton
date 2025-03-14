@@ -16,5 +16,5 @@ print("eq", p1 == p2)
 
 d = {p1: "p1", p2: "p2"}  # ✅ 但如果修改 p1.name 可能导致哈希问题
 # p2.name = "Tom"
-print("change", d[p2])
+print("change", d["test"])
 print(d)
