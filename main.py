@@ -1,20 +1,15 @@
-from dataclasses import dataclass
+class CustomDict(dict):
+    def __setitem__(self, key, value):
+        if not all(char == '_' or char.isdigit() or char.islower() for char in key):
+            raise TypeError(f'Name {key} must only be lowercase with numbers or underscore')
+        super().__setitem__(key, value)
 
 
-@dataclass(eq=True, unsafe_hash=True)  # ✅ 强制生成 __hash__
-class Person:
-    name: str
-    age: int
+class NoCamelHumpMeta(type):
+    @classmethod
+    def __prepare__(cls, name, bases):
+        return CustomDict()
 
 
-p1 = Person("John", 30)
-p2 = Person("John", 30)
-
-print("hash", hash(p1))  # ✅ 现在可以计算哈希值
-print("hash", hash(p2))
-print("eq", p1 == p2)
-
-d = {p1: "p1", p2: "p2"}  # ✅ 但如果修改 p1.name 可能导致哈希问题
-# p2.name = "Tom"
-print("change", d["test"])
-print(d)
+class C(metaclass=NoCamelHumpMeta):
+    def _came(self): pass
