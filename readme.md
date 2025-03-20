@@ -25,3 +25,19 @@ class Config(metaclass=Singleton):
     def __init__(self, value):
         self.value = value
 ```
+# metaclass
+__prepare__ 在类开始定义之前就被调用了，并且在 __prepare__ 中插入的字典项 one: __prepare__ 存在于 __new__ 和 __init__ 的参数 attrs 中。
+在 Python 中，类中的所有定义（包括方法和属性）在类定义完成后都会存储在类的命名空间中，也就是类的 __dict__ 属性中。因此，方法和属性在类的命名空间中是平等的，都可以被视为类的属性。
+
+# 魔术方法
+类型转换
+__int__(self)：被 int() 函数调用。
+__float__(self)：被 float() 函数调用。
+__complex__(self)：被 complex() 函数调用。
+字符串表示
+__str__(self)：被 str() 函数调用。
+__repr__(self)：被 repr() 函数调用。
+属性访问
+__getattr__(self, name)：当访问不存在的属性时被调用。
+__setattr__(self, name, value)：当设置属性值时被调用。
+__delattr__(self, name)：当删除属性时被调用。
