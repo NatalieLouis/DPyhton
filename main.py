@@ -1,13 +1,16 @@
 import asyncio
-async def work(n):
-    await asyncio.sleep(n)
-    return f"done {n}"
+async def heartbeat():
+    while True:
+        print("ping")
+        await asyncio.sleep(5)
+
+async def business():
+    for i in range(3):
+        print("doing business...")
+        await asyncio.sleep(2)
 
 async def main():
-    tasks = [asyncio.create_task(work(i)) for i in [3, 1, 2]]
-    done, pending = await asyncio.wait(tasks, timeout=2)
-
-    print("Done:", done)
-    print("Pending:", pending)
+    asyncio.create_task(heartbeat())
+    await business()
 
 asyncio.run(main())
