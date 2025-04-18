@@ -54,3 +54,6 @@ __repr__(self)：被 repr() 函数调用。
 __getattr__(self, name)：当访问不存在的属性时被调用。
 __setattr__(self, name, value)：当设置属性值时被调用。
 __delattr__(self, name)：当删除属性时被调用。
+
+# 协程
+asyncio.gather()、asyncio.wait()、asyncio.wait_for() 都可以接收协程对象，内部会自动帮你转换成 Task 并调度执行。
