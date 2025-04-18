@@ -1,12 +1,13 @@
 import asyncio
-async def slow_func():
-    await asyncio.sleep(5)
-    return "done"
+async def work(n):
+    await asyncio.sleep(n)
+    return f"done {n}"
 
 async def main():
-    try:
-        result = await asyncio.wait_for(slow_func(), timeout=2)
-    except asyncio.TimeoutError:
-        print("Task timed out!")
+    tasks = [asyncio.create_task(work(i)) for i in [3, 1, 2]]
+    done, pending = await asyncio.wait(tasks, timeout=2)
+
+    print("Done:", done)
+    print("Pending:", pending)
 
 asyncio.run(main())
