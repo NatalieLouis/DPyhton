@@ -1,8 +1,12 @@
-class MyClass:
-    def my_method(self):
-        print("Hello from my_method")
+import asyncio
+async def slow_func():
+    await asyncio.sleep(5)
+    return "done"
 
+async def main():
+    try:
+        result = await asyncio.wait_for(slow_func(), timeout=2)
+    except asyncio.TimeoutError:
+        print("Task timed out!")
 
-# 动态访问方法
-method = MyClass.__dict__['my_method']
-method(MyClass())  # 输出: Hello from my_method
+asyncio.run(main())
